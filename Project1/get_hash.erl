@@ -3,17 +3,18 @@
 -export([main/0]).
 
 main() ->
-    for(10).
+    % hash_work(3).
+    for(30, 4).
 
-for(-1) ->
+for(-1, Zeros_required) ->
     ok;
-for(N) ->
+for(N, Zeros_required) ->
     
-    hash_work(),
-    for(N-1).
+    hash_work(Zeros_required),
+    for(N-1, Zeros_required).
 
 
-hash_work() ->
+hash_work(Zeros_required) ->
 
     UFID = "sinha.kshitij",
     Random = binary_to_list(base64:encode(crypto:strong_rand_bytes(10))),
@@ -22,17 +23,19 @@ hash_work() ->
     % io:write(base64:encode(crypto:strong_rand_bytes(10))).
     Crypt = io_lib:format("~64.16.0b",[binary:decode_unsigned(crypto:hash(sha256, UFID ++ Random))]),
     % io:fwrite("~p", [Crypt]),
-    Crypt_leading = string:sub_string(Crypt, 1, 3),
-    if(Crypt_leading == "000") ->
+    Crypt_leading = string:sub_string(Crypt, 1, Zeros_required),
+    ZeroList = lists:duplicate(Zeros_required,"0"),
+    ZeroVar = string:join(ZeroList, ""),
+    if(Crypt_leading == ZeroVar) ->
         io:fwrite("~p", [Random]),
-        io:fwrite("~p\t", " "),
+        % io:fwrite("~p\t", " "),
         io:fwrite("~p", [UFID ++ Random]),
-        io:fwrite("~p\t", " "),
+        % io:fwrite("~p\t", " "),
         io:fwrite("~p", [Crypt]),
-        io:fwrite("~p\n", " ");
+        io:fwrite("~p\n", [""]);
        
     true ->
-        hash_work()
+        hash_work(Zeros_required)
     end.
 
 
