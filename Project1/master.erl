@@ -1,25 +1,36 @@
 -module(master).
 
--export([runner/0, spawn_actor/2, message_actor/2, send_from_master/0, hash_work/2]).
+-export([runner/0, spawn_actor/2, message_actor/3, send_from_master/0, hash_work/3, hash_loop/3]).
 
-spawn_actor(0, Master_Node) ->
+spawn_actor(0, _) ->
     ok;
 spawn_actor(Number, Master_Node) ->
-    spawn(master, message_actor, [1, Master_Node]),
+    % statistics(runtime),
+    % statistics(wall_clock),
+    spawn(master, message_actor, [1, Master_Node, Number]),
 
     spawn_actor(Number - 1, Master_Node).
 
-message_actor(0, Master_Node) ->
+
+hash_loop(0, _, _) ->
     ok;
-message_actor(N, Master_Node) ->
+
+hash_loop(K, Master_Node, ActorNumber) ->
+    hash_work(3, Master_Node, ActorNumber),
+    hash_loop(K-1, Master_Node, ActorNumber).
+
+message_actor(0, _, _) ->
+    ok;
+message_actor(N, Master_Node, ActorNumber) ->
     {master_ID, Master_Node} ! {spawned, self()},
     % io:fwrite("Sent spawn msg to master\n"),
     receive
         {Do_hash, PID} ->
-            % io:fwrite("REceived do_hash from master\n"),
-            hash_work(4, Master_Node)
+            
+            hash_loop(1, Master_Node, ActorNumber) % Work Units!!%
+            
     end,
-    message_actor(N - 1, Master_Node).
+    message_actor(N - 1, Master_Node, ActorNumber-1).
 
 send_from_master() ->
     receive
@@ -34,10 +45,11 @@ send_from_master() ->
             io:fwrite(" "),
             io:fwrite("~p", [ActorID]),
             io:fwrite("\n")
+    
     end,
     send_from_master().
 
-hash_work(Zeros_required, Master_Node) ->
+hash_work(Zeros_required, Master_Node, ActorNumber) ->
     %TODO: Add Master Msg send
     UFID = "sinha.kshitij",
 
@@ -66,8 +78,20 @@ hash_work(Zeros_required, Master_Node) ->
            Str = UFID ++ RandomStr,
            {master_ID,  Master_Node} ! {Str, Crypt, self()};
        true ->
-           hash_work(Zeros_required, Master_Node)
-    end.
+           hash_work(Zeros_required, Master_Node, ActorNumber)
+    % end,
+    % if ActorNumber-1 == 0 ->
+    %     {_, Time1} = statistics(runtime),
+    %     {_, Time2} = statistics(wall_clock),
+    %     U1 = Time1 * 1000,
+    %     U2 = Time2 * 1000,
+    %     io:format("Code time=~p (~p) microseconds~n",
+    %     [U1,U2]);
+    % true ->
+    %     ok
+
+end.
+    
 
     
 % master_loop(0, MiD) ->
@@ -78,8 +102,7 @@ hash_work(Zeros_required, Master_Node) ->
 
 
 runner() ->
-    statistics(runtime),
-    statistics(wall_clock),
+    
     % Master_ID = spawn(master, , []),
     
     register(master_ID, spawn(master, send_from_master, [])).
