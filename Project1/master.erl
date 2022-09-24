@@ -1,12 +1,13 @@
 -module(master).
 
--export([runner/0, spawn_actor/2, message_actor/3, send_from_master/0, hash_work/3, hash_loop/3]).
+-export([runner/0, spawn_actor/2, message_actor/3, send_from_master/0, hash_work/4, hash_loop/3]).
 
-spawn_actor(0, _) ->
+spawn_actor(0, _) ->     
+    
     ok;
 spawn_actor(Number, Master_Node) ->
-    % statistics(runtime),
-    % statistics(wall_clock),
+    statistics(runtime),
+    statistics(wall_clock),
     spawn(master, message_actor, [1, Master_Node, Number]),
 
     spawn_actor(Number - 1, Master_Node).
@@ -16,10 +17,12 @@ hash_loop(0, _, _) ->
     ok;
 
 hash_loop(K, Master_Node, ActorNumber) ->
-    hash_work(3, Master_Node, ActorNumber),
+    hash_work(4, Master_Node, ActorNumber, K),
     hash_loop(K-1, Master_Node, ActorNumber).
 
 message_actor(0, _, _) ->
+    
+
     ok;
 message_actor(N, Master_Node, ActorNumber) ->
     {master_ID, Master_Node} ! {spawned, self()},
@@ -27,7 +30,7 @@ message_actor(N, Master_Node, ActorNumber) ->
     receive
         {Do_hash, PID} ->
             
-            hash_loop(1, Master_Node, ActorNumber) % Work Units!!%
+            hash_loop(1000, Master_Node, ActorNumber) % Work Units!!%
             
     end,
     message_actor(N - 1, Master_Node, ActorNumber-1).
@@ -38,7 +41,7 @@ send_from_master() ->
             % io:fwrite("received spawn msg\n"),
             ActorID ! {do_hash, self()};
         {String, CoinMined, ActorID} ->
-            io:fwrite("Coin Found "),
+            io:fwrite("Coin Found by Worker"),
             io:fwrite("~p", [String]),
             io:fwrite(" "),
             io:fwrite("~p", [CoinMined]),
@@ -49,7 +52,7 @@ send_from_master() ->
     end,
     send_from_master().
 
-hash_work(Zeros_required, Master_Node, ActorNumber) ->
+hash_work(Zeros_required, Master_Node, ActorNumber, WorkUnits) ->
     %TODO: Add Master Msg send
     UFID = "sinha.kshitij",
 
@@ -76,19 +79,22 @@ hash_work(Zeros_required, Master_Node, ActorNumber) ->
            % io:fwrite("~p", [Crypt]),
            % io:fwrite("~p\n", [""]);
            Str = UFID ++ RandomStr,
-           {master_ID,  Master_Node} ! {Str, Crypt, self()};
+           {master_ID,  Master_Node} ! {Str, Crypt, self()},
+           if (ActorNumber-1 == 0) and (WorkUnits-1 == 0) ->
+            {_, Time1} = statistics(runtime),
+            {_, Time2} = statistics(wall_clock),
+            U1 = Time1 * 1000,
+            U2 = Time2 * 1000,
+            io:format("Code time=~p (~p) microseconds~n",
+            [U1,U2]);
+
+    true ->
+        ok
+    end;
        true ->
-           hash_work(Zeros_required, Master_Node, ActorNumber)
+           hash_work(Zeros_required, Master_Node, ActorNumber, WorkUnits)
     % end,
-    % if ActorNumber-1 == 0 ->
-    %     {_, Time1} = statistics(runtime),
-    %     {_, Time2} = statistics(wall_clock),
-    %     U1 = Time1 * 1000,
-    %     U2 = Time2 * 1000,
-    %     io:format("Code time=~p (~p) microseconds~n",
-    %     [U1,U2]);
-    % true ->
-    %     ok
+    
 
 end.
     
