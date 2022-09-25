@@ -35,7 +35,7 @@
 > - To use different machines on a network (distributed implementation), we just pass the IP address of the machines like this  
 > ```master:spawn([number of workers], 'master@192.168.1.1').``` .
 > - Remember to use ```-setcookie``` flag so that only the desired machines can communicate. 
-> ```erl -sname master -setcookie secret_cookie```  and ```erl -sname actor -setcookie secret_cookie```
+> ```erl -name master -setcookie secret_cookie```  and ```erl -name actor -setcookie secret_cookie```
 > 
 > ### Work Unit
 > The work unit we decided to go for was ```10,000``` as 
@@ -58,4 +58,16 @@
 
 > ### Largest number of working machines
 > We tried our program on ```2``` different machines but we could detect multiple machines on the same network with the same ``` secret_cookie``` which gives us some confidence that ```more than 2``` machines could possibly push working requests to our ```master/server``` and it would allocate the job accordingly.
-> ![Image]()
+
+> - Connecting 2 machines over IP
+> &emsp; ![image](https://user-images.githubusercontent.com/43610780/192124112-a909179e-2d5f-4f5a-ad21-0b400192bc8d.png)
+
+
+> - Mining!
+> 
+> &emsp; ![image](https://user-images.githubusercontent.com/43610780/192124179-19842902-78b9-41e7-a654-917cd7dfd124.png)
+> 
+> &emsp; ![image](https://user-images.githubusercontent.com/43610780/192124123-3f0476d0-4a5e-4d0b-9fea-b1ff8a3cf776.png)
+
+
+
