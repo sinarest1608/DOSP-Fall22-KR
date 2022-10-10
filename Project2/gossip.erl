@@ -4,42 +4,54 @@
  
 
 
-spawn_nodes(0) ->
+spawn_nodes(0, Topology) ->
     io:fwrite("Spawned Nodes, building!!\n"),
-    io:format("NodeList ~p ~n", [persistent_term:get(nodeList)]),
-    io:format("RumourMap ~p ~n", [persistent_term:get(rumourMap)]),
+    % io:format("NodeList ~p ~n", [persistent_term:get(nodeList)]),
+    % io:format("RumourMap ~p ~n", [persistent_term:get(rumourMap)]),
+    % io:format("T ~p ~n", [Topology]),
     % full_network(length(persistent_term:get(nodeList))),
-    full_network(length(persistent_term:get(nodeList))),
-    ok;
+    % line_network(length(persistent_term:get(nodeList))),
+    if Topology == full ->
+        full_network(length(persistent_term:get(nodeList)));
+    true ->
+        if Topology == line ->
+            line_network(length(persistent_term:get(nodeList)));  
+        true ->
+            ok
+        end
+    end, 
+ok;
 
-spawn_nodes(N) ->
-    Pid = spawn(gossip, node_work, []),
+spawn_nodes(N, Topology) ->
+    Pid = spawn(gossip, node_work, [Topology]),
     TempList = lists:append(persistent_term:get(nodeList), [Pid]),
     persistent_term:put(nodeList, TempList),
     TempMap = maps:merge(persistent_term:get(rumourMap), #{Pid=>0}),
     persistent_term:put(rumourMap, TempMap),
-    spawn_nodes(N-1).
+    spawn_nodes(N-1, Topology).
 
 
-master_init(Mid) ->
-    io:format("~p ~n", [Mid]),
+master_init(Mid, Topology) ->
+    % io:format("~p ~n", [Mid]),
     % !! initialise map, list of nodes according to the topology
     Node_List = [], % Store the nodes spawned
     Rumour_Map = #{},
     FullNetwork_Map = #{},
+    LineNetwork_Map = #{},
     persistent_term:put(nodeList, Node_List),
     persistent_term:put(rumourMap, Rumour_Map),
     persistent_term:put(fullNetMap, FullNetwork_Map),
+    persistent_term:put(lineNetMap, LineNetwork_Map),
     io:fwrite("Initialised Everything, Spawning!"),
 
-    spawn_nodes(1000).
+    spawn_nodes(1000, Topology).
     % io:format("~p ~n ~p ~n ~p ~n", [persistent_term:get(nodeList), persistent_term:get(rumourMap), persistent_term:get(fullNetMap)]).
 
 
 full_network(0)->
     io:fwrite("Full Network Done! "),
     io:fwrite("Starting Gossip \n"),
-    io:format("~p ~n", [persistent_term:get(fullNetMap)]),
+    % io:format("~p ~n", [persistent_term:get(fullNetMap)]),
     L = persistent_term:get(nodeList),
     statistics(runtime),
     statistics(wall_clock),
@@ -74,32 +86,48 @@ line_network(N) ->
             TempList = [] ++ [Neighbour1, Neighbour2]
         end
     end,
-    LineNetworkMap = maps:merge(persistent_term:get(lineNetMap), #{Ele=>TempList}),
+    LL = persistent_term:get(lineNetMap),
+    LineNetworkMap = maps:merge(LL, #{Ele=>TempList}),
     persistent_term:put(lineNetMap, LineNetworkMap),
     line_network(N-1).
 
-node_work()->
+node_work(Topology)->
     % io:fwrite("Hello"),
     receive
         {LiarID, Rumour, SelfID} ->
 
             % Check If rumour count <= 10
-
-            io:format("Gossip Received ~p  by ~p  form ~p ~n", [Rumour, SelfID, LiarID]),
+            % TempNet = #{},
+            % io:format("Gossip Received ~p  by ~p  form ~p ~n", [Rumour, SelfID, LiarID]),
             TempRMap = persistent_term:get(rumourMap),
             TempVal = maps:get(SelfID, TempRMap),
             if TempVal < 10 ->
                 UpdatedMap = maps:update(SelfID, TempVal+1, TempRMap),
                 persistent_term:put(rumourMap, UpdatedMap),
-                TempFullNet = persistent_term:get(fullNetMap),
-                TList = maps:get(SelfID, TempFullNet),
-                io:format("RumourMap ~p ~n", [persistent_term:get(rumourMap)]),
-                start_gossip(TList);
+                if Topology == full ->
+                    TempNet = persistent_term:get(fullNetMap),
+                    TList = maps:get(SelfID, TempNet),
+                    % io:format("RumourMap ~p ~n", [persistent_term:get(rumourMap)]),
+                    start_gossip(TList);
+                true ->
+                    if Topology == line ->
+                    TempNet = persistent_term:get(lineNetMap),
+                    TList = maps:get(SelfID, TempNet),
+                    % io:format("RumourMap ~p ~n", [persistent_term:get(rumourMap)]),
+                    start_gossip(TList);
+                    true ->
+                        ok
+                    end
+                end;
+                % TempNet = persistent_term:get(lineNetMap),
+                % TList = maps:get(SelfID, TempNet),
+                % io:format("RumourMap ~p ~n", [persistent_term:get(rumourMap)]),
+                % start_gossip(TList);
             true ->
                 ListRem = persistent_term:get(nodeList),
                 NewListRem = lists:delete(SelfID, ListRem),
                 T = persistent_term:put(nodeList, NewListRem),
-                io:format("List After delete ~p ~n", [NewListRem]),
+                % io:format("List After delete ~p ~n", [NewListRem]),
                 if NewListRem == [] ->
                     {_, Time1} = statistics(runtime),
                     {_, Time2} = statistics(wall_clock),
@@ -116,7 +144,7 @@ node_work()->
                 ok
             end
     end,
-    node_work().
+    node_work(Topology).
     
 
 % start_gossip(_)->
@@ -130,13 +158,13 @@ start_gossip(L)->
         % NList = persistent_term:get(nodeList); 
     true ->
         NList = L,
-        io:format(" List ~p ~n", [NList]),
+        % io:format(" List ~p ~n", [NList]),
         % io:format("In Gossip, List ~p ~n By ~p ~n", [NList, self()]),
         RandomNode = lists:nth(rand:uniform(length(NList)), NList),
         
         RandomNode ! {self(), "Rumour", RandomNode},
-        TMap = persistent_term:get(fullNetMap),
-        Neighbours = maps:get(RandomNode, TMap)
+        TMap = persistent_term:get(fullNetMap)
+        % Neighbours = maps:get(RandomNode, TMap)
         % start_gossip(Neighbours)
         
     end.
@@ -179,8 +207,8 @@ start_gossip(L)->
 runner() ->
     % {ok, Z} = io:read("Enter Number of Zeros "), !!! To pass number of nodes !!!
     % Master_ID = spawn(master, , []),
-    
-    register(master_ID, spawn(gossip, master_init, [self()])).
+    {ok, T} = io:read(""),
+    register(master_ID, spawn(gossip, master_init, [self(), T])).
     
     
 
