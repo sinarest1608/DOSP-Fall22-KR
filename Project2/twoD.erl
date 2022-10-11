@@ -7,7 +7,7 @@ spawn_nodes(0) ->
     io:fwrite("Spawned Nodes, building!!\n"),
     io:format("NodeList ~p ~n", [persistent_term:get(nodeList)]),
     io:format("RumourMap ~p ~n", [persistent_term:get(rumourMap)]),
-    line_network(length(persistent_term:get(nodeList))),
+    twoD_network(length(persistent_term:get(nodeList))),
     
     ok;
 
@@ -20,26 +20,32 @@ spawn_nodes(N) ->
     spawn_nodes(N-1).
 
 twoD_network(0)->
-    io:format("2D ~p ~n", [persistent_term:get(lineNetMap)]);
-    twoD_network(N) ->
+    io:format("2D ~p ~n", [persistent_term:get(twoDNetwork)]);
+twoD_network(N) ->
     CurrentNodeList = persistent_term:get(nodeList),
     Ele = lists:nth(N, CurrentNodeList),
     if N == 1 ->
         Neighbour1 = lists:nth(N+1, CurrentNodeList),
-        TempList = [] ++ [Neighbour1];  
+        Neighbour2 = lists:nth(N+3, CurrentNodeList),
+        TempList = [] ++ [Neighbour1, Neighbour2];  
     true ->
         if N == length(CurrentNodeList) ->
             Neighbour1 = lists:nth(N-1, CurrentNodeList),
-            TempList = [] ++ [Neighbour1]; 
+            
+            Neighbour3 = lists:nth(N-3, CurrentNodeList),
+            
+            TempList = [] ++ [Neighbour1,  Neighbour3]; 
         true -> 
             Neighbour1 = lists:nth(N-1, CurrentNodeList),
             Neighbour2 = lists:nth(N+1, CurrentNodeList),
-            TempList = [] ++ [Neighbour1, Neighbour2]
+            Neighbour3 = lists:nth(N-3, CurrentNodeList),
+            Neighbour4 = lists:nth(N+3, CurrentNodeList),
+            TempList = [] ++ [Neighbour1, Neighbour2, Neighbour3, Neighbour4]
         end
     end,
-    LineNetworkMap = maps:merge(persistent_term:get(lineNetMap), #{Ele=>TempList}),
-    persistent_term:put(lineNetMap, LineNetworkMap),
-    line_network(N-1).
+    TwoDNetworkMap = maps:merge(persistent_term:get(twoDNetwork), #{Ele=>TempList}),
+    persistent_term:put(twoDNetwork, TwoDNetworkMap),
+twoD_network(N-1).
 
 main()->
     LineNetwork_Map = #{},
