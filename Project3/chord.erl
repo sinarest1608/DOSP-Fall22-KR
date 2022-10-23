@@ -1,55 +1,6 @@
 -module(chord).
 -compile(export_all).
 
-start(NumNodes, NumReqs) ->
-    Temp = 0,
-    N = 0,
-    % while(Temp, NumNodes, N),
-    Nodelist = #{},
-    Sp = #{},
-    Finger=#{},
-    persistent_term:put(sucpred, Sp),
-    persistent_term:put(node, Nodelist),
-    persistent_term:put(reqs, NumReqs),
-    persistent_term:put(finger, Finger),
-    persistent_term:put(successor, 0),
-    persistent_term:put(predecessor, 0),
-    persistent_term:put(nodeId, 0),
-    register(mid, spawn(chord, master, [NumNodes])),
-    Map = #{-1 => mid},
-    persistent_term:put(map, Map),
-    M = 6,
-    persistent_term:put(m, M),
-    Integer = integer_to_list(0),
-    Str = string:concat("node", Integer),
-    Name = io_lib:format("~64.16.0b", [
-        binary:decode_unsigned(
-            crypto:hash(
-                sha256,
-                Str
-            )
-        )
-    ]),
-    FirstHash = Name,
-    persistent_term:put(first, FirstHash),
-    L = #{}, %initilise with M number of Empty tuples.
-    Pid = spawn(chord, nodeWork, [L]),
-    Map2 = persistent_term:get(node),
-    Map3 = #{1 => {1,Pid}},
-    NewMap = maps:merge(Map2, Map3),
-
-
-
-    % F1 = persistent_term:get(finger),
-    % F2 = #{1 => #{}},
-    % NewF = maps:merge(F1,F2),
-    % persistent_term:put(finger,NewF ),
-
-    persistent_term:put(node, NewMap),
-    io:fwrite("First node created with id: ~p~n", [Name]),
-    Pid ! {initial},
-   
-    for(2, NumNodes-1,1).
 
 master(NumNodes) ->
     Count = 0,
@@ -89,7 +40,90 @@ master(NumNodes) ->
     master(NumNodes).
 
 
+for(_, 0,_) ->
+    mid ! {"done","gh"},
+    ok;
+for(I, NumNodes,Prev) ->
+    K = [3,6,7,11],
+    Ran = lists:nth(rand:uniform(length(K)), K),
+    L = #{},
+   
+    Pid = spawn(chord, nodeWork, [L]),
+    Map = persistent_term:get(node),
+    NodeCount = Prev +Ran,
+    M=persistent_term:get(m),
+    Max = math:pow(2,M),
+    if NodeCount > Max ->
+        for(I,0,Prev);
+    true->
+        Map_2 = #{I => {NodeCount,Pid}},
+        Map_3 = maps:merge(Map, Map_2),
+        persistent_term:put(node, Map_3),
+        io:fwrite("New node created with id: ~p~n", [NodeCount]),
+        %  F1 = persistent_term:get(finger),
+        % F2 = #{I => #{}},
+        % NewF = maps:merge(F1,F2),
+        % persistent_term:put(finger,NewF ),
 
+
+        Pid ! {new_node},
+        for(I + 1, NumNodes-1,NodeCount)
+
+    end.
+   
+
+
+
+
+start(NumNodes, NumReqs) ->
+    Temp = 0,
+    N = 0,
+    % while(Temp, NumNodes, N),
+    Nodelist = #{},
+    Sp = #{},
+    Finger=#{},
+    persistent_term:put(sucpred, Sp),
+    persistent_term:put(node, Nodelist),
+    persistent_term:put(reqs, NumReqs),
+    persistent_term:put(finger, Finger),
+    persistent_term:put(successor, 0),
+    persistent_term:put(predecessor, 0),
+    persistent_term:put(nodeId, 0),
+    register(mid, spawn(chord, master, [NumNodes])),
+    Map = #{-1 => mid},
+    persistent_term:put(map, Map),
+    M = 6,
+    persistent_term:put(m, M),
+    Integer = integer_to_list(0),
+    Str = string:concat("node", Integer),
+    Name = io_lib:format("~64.16.0b", [
+        binary:decode_unsigned(
+            crypto:hash(
+                sha256,
+                Str
+            )
+        )
+    ]),
+    FirstHash = Name,
+    persistent_term:put(first, FirstHash),
+    L = #{}, %initilise with M number of Empty tuples.
+    Pid = spawn(chord, nodeWork, [L]),
+    Map_2 = persistent_term:get(node),
+    Map_3 = #{1 => {1,Pid}},
+    New_Map = maps:merge(Map_2, Map_3),
+
+
+
+    % F1 = persistent_term:get(finger),
+    % F2 = #{1 => #{}},
+    % NewF = maps:merge(F1,F2),
+    % persistent_term:put(finger,NewF ),
+
+    persistent_term:put(node, New_Map),
+    io:fwrite("First node created with id: ~p~n", [Name]),
+    Pid ! {initial},
+   
+    for(2, NumNodes-1,1).
 
 
 
@@ -109,38 +143,6 @@ master(NumNodes) ->
 
 
 %---------------------------Spawn remaining actors----------------------------------------
-for(_, 0,_) ->
-    mid ! {"done","gh"},
-    ok;
-for(I, NumNodes,Prev) ->
-    K = [3,6,7,11],
-    Ran = lists:nth(rand:uniform(length(K)), K),
-    L = #{},
-   
-    Pid = spawn(chord, nodeWork, [L]),
-    Map = persistent_term:get(node),
-    Nodenum = Prev +Ran,
-    M=persistent_term:get(m),
-    Max = math:pow(2,M),
-    if Nodenum > Max ->
-        for(I,0,Prev);
-    true->
-        Map2 = #{I => {Nodenum,Pid}},
-        Map3 = maps:merge(Map, Map2),
-        persistent_term:put(node, Map3),
-        io:fwrite("New node created with id: ~p~n", [Nodenum]),
-        %  F1 = persistent_term:get(finger),
-        % F2 = #{I => #{}},
-        % NewF = maps:merge(F1,F2),
-        % persistent_term:put(finger,NewF ),
-
-
-        Pid ! {new_node},
-        for(I + 1, NumNodes-1,Nodenum)
-
-    end.
-   
-
 
 
 nodeWork(Table) ->
