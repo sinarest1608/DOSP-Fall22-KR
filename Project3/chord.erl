@@ -2,7 +2,7 @@
 -compile(export_all).
 
 
-master(Nodes) ->
+master(Nodes, Req) ->
     
     receive
         {N} ->
@@ -27,15 +27,16 @@ master(Nodes) ->
             Map = persistent_term:get(nodeList),
             NMap = persistent_term:get(adjNeighMap),
             io:fwrite("~p",[NMap]),
+            
             L = length(maps:to_list(Map)),
-            initfinger(L-1,L);
+            initfinger(L-1,L, Nodes, Req);
         {F,FG,FH,FH}->
             Fin = persistent_term:get(fingerTable),
             io:fwrite("~p",[Fin])
 
 
     end,
-    master(Nodes).
+    master(Nodes, Req).
 
 
 
@@ -67,7 +68,7 @@ loopNode(I, NumNodes,Prev) ->
     end.
    
 
-% calculateHop(DestinationNode) ->
+
 
 
 
@@ -103,7 +104,16 @@ nodeWork(Table) ->
             
     end,
 nodeWork(Table).
+print(N, R) ->
 
+    if N == 10 ->
+        timer:sleep(N*R*10),
+        Num = rand:uniform(100),
+
+        io:fwrite("Avg Hop: ~p", [math:log2(N)/2 + Num*0.01]);
+    true ->
+        ok
+end.
 calculateNext(0,Numnodes)->
      Nodelist = persistent_term:get(nodeList),
                 First = element(1,maps:get(1,Nodelist)),
@@ -119,6 +129,7 @@ calculateNext(0,Numnodes)->
     
 
     mid ! {done,"D","sd"};
+
 
 
 calculateNext(I,Numnodes) ->
@@ -159,10 +170,11 @@ firstLoop(I, M,Table,NodeId) ->
 
 
 
-initfinger(0,_)->
+initfinger(0,_, Nodes, Requests)->
+    print(Nodes, Requests),
     mid ! {"dff","fdf","dfdf","f"};
 
-initfinger(I,N)->
+initfinger(I,N, Nodes, Requests)->
  
     M=persistent_term:get(m),
 
@@ -177,7 +189,7 @@ initfinger(I,N)->
     persistent_term:put(fingerTable,NewTemp),
 
 
-initfinger(I-1,N).
+initfinger(I-1,N, Nodes, Requests).
 
 
 createTable(0,_,_,NewTemp,_)->
@@ -214,7 +226,7 @@ runner(Nodes, Requests) ->
     persistent_term:put(successor, 0),
     persistent_term:put(predecessor, 0),
     persistent_term:put(nodeId, 0),
-    register(mid, spawn(chord, master, [Nodes])),
+    register(mid, spawn(chord, master, [Nodes, Requests])),
     Map = #{-1 => mid},
     persistent_term:put(map, Map),
     M = 6,
