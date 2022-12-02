@@ -358,3 +358,197 @@ await_result() ->
         {twitter, What} ->
             io:format("~p~n", [What])
     end.
+
+
+    for_reg(0)->
+        ok;
+    for_reg(N)->
+        registerUser(N,"1"),
+        for_reg(N-1).
+     
+    for_log(0,Max)->
+        io:fwrite("\n"),
+        ok;
+    for_log(N,Max)->
+     
+        logonSimulator(N,N,Max),
+        for_log(N-1,Max).
+     
+    for_follow(0,Max)->
+        io:fwrite("\n"),
+        ok;
+    for_follow(N,Max)->
+        User1 = rand:uniform(N),
+        User2 = getRandom(User1, Max),
+        persistent_term:put(user, User1),
+     
+        followSimulator(User1, User2),
+        tweetSimulator(User2,"Hello",1000),
+     
+        for_follow(N-1, Max).
+     
+    for_off(0)->
+        {_, Time1} = statistics(runtime),
+        {_, Time2} = statistics(wall_clock),
+        U1 = Time1 * 1000,
+        U2 = Time2 * 1000,
+        io:format("Code time=~p (~p)~n", [U2, U1]),
+        ok;
+    for_off(N)->
+        logoffSimulator(N,N),
+        for_off(N-1).
+     
+    logoffSimulator(N,N)->
+        {fetch, server_node()} ! {user_list, self()},
+     
+        receive 
+            {Dat}->
+                Userdata=Dat 
+        end,
+        maps:remove(N, Userdata),
+        io:fwrite("@~p has logged off\n",[N]),
+        X=maps:size(Userdata),
+        if 
+            X==0 ->
+                exit(bas);
+            true ->
+                ok
+        end.
+     
+    getRandom(User1, N) ->
+        User2 = rand:uniform(N),
+        if 
+            User1==User2 ->
+                getRandom(User1, N);
+            true ->
+                User2
+        end.
+     
+    tweetSimulator(User,Message,0)->
+        FollwersMap = persistent_term:get(folSimulator),
+        {fetch, server_node()} ! {tweetmap, self()},
+        receive 
+            {Tweetmp, Alt}->
+                Tweet = Tweetmp,
+                Alltweets = Alt 
+        end,
+     
+        Tweetsmap=persistent_term:get(tweetsSimulator),
+     
+        Newalltweets=lists:append(Alltweets, [Message]),
+     
+        List = maps:get(User, FollwersMap),
+     
+        Tweetlist = maps:get(User, Tweetsmap),
+     
+        Tweetlist2 = lists:append(Tweetlist, [Message]),
+     
+        Tweetmp1 = maps:update(User, Tweetlist2, Tweetsmap),
+     
+        {twitter, server_node()} ! {tweetupd, Tweetmp1, Newalltweets},
+     
+        lists:foreach(
+            fun(Elem) ->
+                io:fwrite("To @~p From: @~p Tweet: ~p~n", [Elem, User, Message])
+            
+            end,
+            List
+        );
+     
+    tweetSimulator(User, Message,N)->
+        FollwersMap = persistent_term:get(folSimulator),
+     
+        {fetch, server_node()} ! {tweetmap, self()},
+        receive 
+            {Tweetmp, Alt}->
+                Tweet = Tweetmp,
+                Alltweets = Alt 
+        end,
+     
+        Tweetsmap=persistent_term:get(tweetsSimulator),
+     
+        Newalltweets=lists:append(Alltweets, [Message]),
+     
+        List = maps:get(User, FollwersMap),
+     
+        Tweetlist = maps:get(User, Tweetsmap),
+     
+        Tweetlist2 = lists:append(Tweetlist, [Message]),
+     
+        Tweetmp1 = maps:update(User, Tweetlist2, Tweetsmap),
+     
+        {twitter, server_node()} ! {tweetupd, Tweetmp1, Newalltweets},
+     
+        lists:foreach(
+            fun(Elem) ->
+                io:fwrite("To @~p From: @~p Tweet: ~p~n", [Elem, User, Message])
+            
+            end,
+            List
+        ),
+        tweetSimulator(User,Message,N-1).
+     
+    logonSimulator(Name, _Password, Max)->
+            io:fwrite("@~p has logged on\n", [Name]),
+            if 
+                Name==Max ->
+                    {fetch, server_node()} ! {followmap, self()},
+                    receive 
+                        {Fol} ->
+                            FollowersMap = Fol 
+     
+                    end,
+                    {fetch, server_node()} ! {tweetmap, self()},
+                    receive 
+                        {Tweet, All} ->
+                            TweetsMap = Tweet 
+                    end, 
+                    {fetch, server_node()} ! {lstmsg, self()},
+                    receive 
+                        {Last} ->
+                            LastMap=Last 
+                    end; 
+                true ->
+                    FollowersMap = persistent_term:get(folSimulator),
+                    TweetsMap = persistent_term:get(tweetsSimulator),
+                    LastMap = persistent_term:get(lastSimulator)
+            end,
+     
+            FollowersMap2= #{Name => []},
+            FollowersMap3=maps:merge(FollowersMap2, FollowersMap),
+     
+            persistent_term:put(folSimulator, FollowersMap3),
+     
+     
+            Temp_tweet = #{Name => []},
+     
+            NewTweetmp=maps:merge(TweetsMap, Temp_tweet),
+     
+            persistent_term:put(tweetsSimulator, NewTweetmp),
+     
+            Temp_lsttweet = #{Name => ""},
+     
+            NewLastTweetmp = maps:merge(LastMap, Temp_lsttweet),
+     
+            persistent_term:put(lastSimulator, NewLastTweetmp).
+     
+    followSimulator(User1, User2)->
+        FollowersMap = persistent_term:get(folSimulator),
+     
+        List = maps:get(User2, FollowersMap),
+        List2 = lists:append(List, [User1]),
+        FollowersMap2 = maps:update(User2, List2, FollowersMap),
+        FollowersMap3 = maps:merge(FollowersMap, FollowersMap2),
+     
+        persistent_term:put(folSimulator, FollowersMap3).
+     
+     
+    simulator(N) ->
+        statistics(runtime),
+        statistics(wall_clock),
+        for_reg(N),
+        for_log(N,N),
+        Half = N-49,
+        for_follow(Half, N),
+     
+        for_off(N).
