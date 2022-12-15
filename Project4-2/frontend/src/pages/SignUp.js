@@ -30,7 +30,16 @@ const SignUpPage = () => {
 		}
 	};
 	return (
-		<Container maxWidth="xs" className="page" style={{ backgroundColor: '#1DA1F2', borderRadius: '10px' }}>
+		<Container
+			maxWidth="xs"
+			className="page"
+			style={{
+				backgroundColor: 'white',
+				alignSelf: 'center',
+				alignmentBaseline: 'central',
+				borderRadius: '10px'
+			}}
+		>
 			<br />
 			<br />
 			<Typography
@@ -50,12 +59,10 @@ const SignUpPage = () => {
 			</Typography>
 			<br />
 			<TextField
-			
 				id="username"
 				label="Username"
 				variant="outlined"
 				fullWidth
-				
 				onChange={(e) => setUsername(e.target.value)}
 			/>
 			<br />

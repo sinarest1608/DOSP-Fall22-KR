@@ -6,9 +6,14 @@ import { getAllTweets } from '../data/LocalStorageDB';
 
 const FeedPage = () => {
 	const [ tweets, setTweets ] = useState(getAllTweets());
-	
+
 	return (
-		<Container className="page">
+		<Container
+			className="page"
+			sx={{ margin: 0 }}
+			maxWidth={false}
+			style={{ background: '#1DA1F2', height: '100vh' }}
+		>
 			<Appbar />
 			<Container maxWidth="lg" className="page-content">
 				<br />
@@ -23,14 +28,14 @@ const FeedPage = () => {
 								textDecoration: 'none'
 							}}
 						>
-							Your Feed
+							Home
 						</Typography>
 						<br />
 						{tweets.length === 0 ? "It's Lonely out there!" : null}
 					</Grid>
 					<Grid item xs>
 						<FormGroup>
-							<FormControlLabel control={<Switch />} label="Subscribed only" />
+							<FormControlLabel control={<Switch />} label="Following Only" />
 						</FormGroup>
 					</Grid>
 					{tweets.map((tweet) => {

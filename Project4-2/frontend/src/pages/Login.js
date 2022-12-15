@@ -2,6 +2,10 @@ import { Button, Container, TextField, Typography } from '@mui/material';
 import { useState } from 'react';
 import { loginUser } from '../data/LocalStorageDB';
 
+const theme = {
+	spacing: (value) => value * 2
+};
+
 const LoginPage = () => {
 	const [ username, setUsername ] = useState('');
 	const [ password, setPassword ] = useState('');
@@ -17,8 +21,16 @@ const LoginPage = () => {
 		}
 	};
 	return (
-        
-            <Container maxWidth="xs" className="page" style={{ backgroundColor: '#1DA1F2', alignSelf:'center', alignmentBaseline:'central', borderRadius: '10px'} }>
+		<Container
+			maxWidth="xs"
+			className="page"
+			style={{
+				backgroundColor: 'white',
+				alignSelf: 'center',
+				alignmentBaseline: 'central',
+				borderRadius: '10px'
+			}}
+		>
 			<br />
 			<br />
 			<Typography
@@ -62,10 +74,9 @@ const LoginPage = () => {
 			<br />
 			<br />
 			<a href="/signup">New user? Sign Up</a>
-            <br />
-            <br />
+			<br />
+			<br />
 		</Container>
-
 	);
 };
 

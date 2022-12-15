@@ -3,7 +3,7 @@ import { logOutUser } from '../data/LocalStorageDB';
 
 const Appbar = () => {
 	return (
-		<AppBar position="static">
+		<AppBar elevation={0} position="static" style={{ background: '#1DA1F2' }}>
 			<Container maxWidth={false}>
 				<Toolbar disableGutters>
 					<Typography
@@ -31,7 +31,7 @@ const Appbar = () => {
 						Log Out
 					</Button>
 					<Button color="inherit" variant="outlined" onClick={() => (window.location.href = '/new')}>
-						New Twit
+						New Post
 					</Button>
 				</Toolbar>
 			</Container>
