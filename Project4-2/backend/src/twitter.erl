@@ -234,7 +234,7 @@ getdata() ->
     end,
     getdata().
 
-registerUser(UserName, Password) ->
+registerUser(UserName, Password, Name) ->
     persistent_term:put(userMap, #{UserName => Password}),
     io:fwrite("User Registered! ~p\n", [UserName]).
 
@@ -363,7 +363,7 @@ await_result() ->
     for_reg(0)->
         ok;
     for_reg(N)->
-        registerUser(N,"1"),
+        registerUser(N,"1", ""),
         for_reg(N-1).
      
     for_log(0,Max)->

@@ -6,7 +6,7 @@ import { getAllTweets } from '../data/LocalStorageDB';
 
 const FeedPage = () => {
 	const [ tweets, setTweets ] = useState(getAllTweets());
-
+	
 	return (
 		<Container className="page">
 			<Appbar />
