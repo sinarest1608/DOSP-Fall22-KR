@@ -17,7 +17,8 @@ const LoginPage = () => {
 		}
 	};
 	return (
-		<Container maxWidth="xs" className="page" style={{ backgroundColor: '#1DA1F2' }}>
+        
+            <Container maxWidth="xs" className="page" style={{ backgroundColor: '#1DA1F2', alignSelf:'center', alignmentBaseline:'central', borderRadius: '10px'} }>
 			<br />
 			<br />
 			<Typography
@@ -61,7 +62,10 @@ const LoginPage = () => {
 			<br />
 			<br />
 			<a href="/signup">New user? Sign Up</a>
+            <br />
+            <br />
 		</Container>
+
 	);
 };
 

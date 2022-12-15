@@ -30,7 +30,7 @@ const SignUpPage = () => {
 		}
 	};
 	return (
-		<Container maxWidth="xs" className="page" style={{ backgroundColor: '#1DA1F2' }}>
+		<Container maxWidth="xs" className="page" style={{ backgroundColor: '#1DA1F2', borderRadius: '10px' }}>
 			<br />
 			<br />
 			<Typography
@@ -50,10 +50,12 @@ const SignUpPage = () => {
 			</Typography>
 			<br />
 			<TextField
+			
 				id="username"
 				label="Username"
 				variant="outlined"
 				fullWidth
+				
 				onChange={(e) => setUsername(e.target.value)}
 			/>
 			<br />
@@ -90,6 +92,8 @@ const SignUpPage = () => {
 			<Button variant="contained" onClick={signUp}>
 				Sign Up
 			</Button>
+			<br />
+			<br />
 		</Container>
 	);
 };

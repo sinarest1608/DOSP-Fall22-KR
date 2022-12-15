@@ -14,5 +14,15 @@ code {
 
 .page {
   width: 100vw !important;
-  padding: 0 !important;
+  padding: 10 !important;
+  
 }
+
+.c {
+  /* height: 100vh; Magic here */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  
+}
+
