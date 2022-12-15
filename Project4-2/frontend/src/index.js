@@ -7,15 +7,16 @@ import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 import HomePage from './pages/Home';
 import LoginPage from './pages/Login';
 import SignUpPage from './pages/SignUp';
-import NewTwitPage from './pages/NewTwit';
+import NewTwitPage from './pages/Tweet';
 import UserListingPage from './pages/Users';
+import SearchPage from './pages/Search';
 const router = createBrowserRouter([
 	{
 		path: '/',
 		element: <HomePage />
 	},
 	{
-		path: '/explore',
+		path: '/login',
 		element: <LoginPage />
 	},
 	{
@@ -31,12 +32,16 @@ const router = createBrowserRouter([
 		)
 	},
 	{
-		path: '/new',
+		path: '/tweet',
 		element: <NewTwitPage />
 	},
 	{
 		path: '/users',
 		element: <UserListingPage />
+	},
+	{
+		path: '/search',
+		element: <SearchPage />
 	}
 ]);
 

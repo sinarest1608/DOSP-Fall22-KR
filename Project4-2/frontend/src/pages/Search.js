@@ -1,12 +1,12 @@
-import { Button, Container, FormControlLabel, FormGroup, Grid, Switch, Typography } from '@mui/material';
+import { Button, Container, FormControlLabel, FormGroup, Grid, Switch, Typography, TextField, Box } from '@mui/material';
 import { useState } from 'react';
 import Appbar from '../components/Appbar';
 import Tweet from '../components/Tweet';
 import { getAllTweets } from '../data/LocalStorageDB';
 
-const FeedPage = () => {
+const SearchPage = () => {
 	const [ tweets, setTweets ] = useState(getAllTweets());
-
+    const [query, setQuery] = useState("")
 	return (
 		<Container
 			className="page"
@@ -15,6 +15,25 @@ const FeedPage = () => {
 			style={{ background: '#1DA1F2', height: '100vh' }}
 		>
 			<Appbar />
+            <Box
+            component="form"
+            sx={{
+              '& .MuiTextField-root': { m: 1, width: '25ch', color:'white' },
+              
+            }}
+            noValidate
+            autoComplete="off">
+                <div>
+                <TextField
+
+          id="outlined-required"
+          label="Search Query"
+          defaultValue=""
+          sx={{color: 'white', outlineColor: 'white'}}
+          onChange={event => setQuery(event.target.value)}
+        />
+                </div>
+            </Box>
 			<Container maxWidth="lg" className="page-content">
 				<br />
 				<Grid container spacing={2}>
@@ -39,7 +58,7 @@ const FeedPage = () => {
 						</FormGroup>
 					</Grid> */}
 					{tweets.map((tweet) => {
-						if(tweet.user.username === "Kshitij"){
+						if(tweet.content.includes(query)){
 							return (
 								<Grid item xs={12}>
 									<Tweet content={tweet.content} createdAt={tweet.createdAt} user={tweet.user} />
@@ -57,4 +76,4 @@ const FeedPage = () => {
 	);
 };
 
-export default FeedPage;
+export default SearchPage;

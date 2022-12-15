@@ -16,7 +16,7 @@ def register(username: str, password: str, displayName: str) -> bool:
 
     return True
 
-@app.route("/api/register", methods=["POST"])
+@app.route("/api/signup", methods=["POST"])
 def register_api():
     # Get the username and password from the request
     username = request.args.get('username')

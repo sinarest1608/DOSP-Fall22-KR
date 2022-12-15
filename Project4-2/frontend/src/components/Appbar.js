@@ -24,14 +24,17 @@ const Appbar = () => {
 					>
 						TWITERRRRRR!
 					</Typography>
+					<Button color="inherit" onClick={() => (window.location.href = '/search')}>
+						Search
+					</Button>
 					<Button color="inherit" onClick={() => (window.location.href = '/users')}>
 						Users
 					</Button>
 					<Button color="inherit" onClick={() => logOutUser()}>
 						Log Out
 					</Button>
-					<Button color="inherit" variant="outlined" onClick={() => (window.location.href = '/new')}>
-						New Post
+					<Button color="inherit"  onClick={() => (window.location.href = '/new')}>
+						Tweet
 					</Button>
 				</Toolbar>
 			</Container>

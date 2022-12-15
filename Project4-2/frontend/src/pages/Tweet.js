@@ -39,7 +39,7 @@ const NewTwitPage = () => {
 						textDecoration: 'none'
 					}}
 				>
-					NEW TWITERRRRRR
+					Tweet
 				</Typography>
 				<p>Only Text Allowed</p>
 				<br />

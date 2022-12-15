@@ -73,7 +73,7 @@ const LoginPage = () => {
 			</Button>
 			<br />
 			<br />
-			<a href="/signup">New user? Sign Up</a>
+			<a href="/signup">Sign Up</a>
 			<br />
 			<br />
 		</Container>
