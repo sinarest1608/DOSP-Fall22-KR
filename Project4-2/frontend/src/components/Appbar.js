@@ -33,7 +33,7 @@ const Appbar = () => {
 					<Button color="inherit" onClick={() => logOutUser()}>
 						Log Out
 					</Button>
-					<Button color="inherit"  onClick={() => (window.location.href = '/new')}>
+					<Button color="inherit"  onClick={() => (window.location.href = '/tweet')}>
 						Tweet
 					</Button>
 				</Toolbar>
